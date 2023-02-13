@@ -23,9 +23,14 @@ from lora_diffusion import patch_pipe, tune_lora_scale, set_lora_diag
 
 from safetensors.torch import safe_open, save_file
 
+class DummySafetyChecker:
+    @staticmethod
+    def __call__(images, clip_input):
+        return images, False
+
 MODEL_ID = "runwayml/stable-diffusion-v1-5"
 MODEL_CACHE = "diffusers-cache"
-SAFETY_MODEL_ID = "CompVis/stable-diffusion-safety-checker"
+#SAFETY_MODEL_ID = "CompVis/stable-diffusion-safety-checker"
 
 
 def lora_join(lora_safetenors: list):
@@ -149,9 +154,11 @@ class Predictor(BasePredictor):
             cache_dir=MODEL_CACHE,
             local_files_only=True,
         )
+        dummy_safety_checker = DummySafetyChecker()
+
         self.pipe = StableDiffusionPipeline.from_pretrained(
             MODEL_ID,
-            safety_checker=safety_checker,
+            safety_checker=dummy_safety_checker,
             cache_dir=MODEL_CACHE,
             local_files_only=True,
         ).to("cuda")
